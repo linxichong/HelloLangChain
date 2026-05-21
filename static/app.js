@@ -5,6 +5,12 @@ let providers = [
 ];
 let configuredProviders = ["gemini"];
 
+const providerIconLabels = {
+  gemini: "Gemini",
+  openai: "OpenAI",
+  deepseek: "DeepSeek",
+};
+
 const modelRoot = document.querySelector("#models");
 const sendBtn = document.querySelector("#sendBtn");
 const clearBtn = document.querySelector("#clearBtn");
@@ -109,7 +115,10 @@ function createPanels(models) {
     panel.dataset.provider = provider;
     panel.innerHTML = `
       <div class="model-head">
-        <div class="model-title">${label}</div>
+        <div class="model-title">
+          <span class="provider-icon provider-${provider}" aria-label="${providerIconLabels[provider] || label}" role="img"></span>
+          <span>${label}</span>
+        </div>
         <div class="status" id="status-${provider}">${configured ? "就绪" : "未配置"}</div>
       </div>
       <div class="messages" id="messages-${provider}"></div>

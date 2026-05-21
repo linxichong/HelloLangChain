@@ -3,7 +3,11 @@ from pathlib import Path
 
 
 def load_dotenv(path: str | Path | None = None) -> None:
-    env_path = Path(path) if path is not None else Path(__file__).resolve().parent / ".env"
+    env_path = (
+        Path(path)
+        if path is not None
+        else Path(__file__).resolve().parents[2] / ".env"
+    )
     if not env_path.exists():
         return
 
