@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 - Multi Model Chat</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="auth-screen">
+    <section class="auth-panel">
+      <div class="auth-copy">
+        <h1>Multi Model Chat</h1>
+        <p>登录后进入股票分析助手。</p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <label>
+          <span>用户名</span>
+          <input id="username" autocomplete="username" placeholder="输入用户名" />
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="password" autocomplete="current-password" placeholder="输入密码" type="password" />
+        </label>
+        <button id="loginBtn" class="primary" type="submit">登录</button>
+      </form>
+
+      <p class="auth-link">还没有账号？<a href="/register">注册</a></p>
+    </section>
+  </main>
+
+  <script src="/static/auth.js" defer></script>
+</body>
+</html>

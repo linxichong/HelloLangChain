@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi Model Chat</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <h1>Multi Model Chat</h1>
+      <div class="authbar">
+        <div id="userInfo" class="user-info" hidden>
+          <span id="currentUser"></span>
+          <button id="logoutBtn" type="button">退出</button>
+        </div>
+        <button id="clearBtn" type="button">清空记忆</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="models" id="models" aria-label="模型回答窗口"></section>
+    </main>
+
+    <footer class="composer-bar">
+      <div class="controls">
+        <label>
+          <span>Role</span>
+          <select id="role">
+            <option value="通用">通用</option>
+            <option value="Python 编程">Python 编程</option>
+            <option value="小说推荐">小说推荐</option>
+            <option value="金融专家">金融专家</option>
+            <option value="翻译">翻译</option>
+            <option value="学习教练">学习教练</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Language</span>
+          <select id="language">
+            <option value="中文">中文</option>
+            <option value="English">English</option>
+            <option value="日本語">日本語</option>
+          </select>
+        </label>
+
+        <label class="style-field">
+          <span>Style</span>
+          <input id="style" placeholder="默认：简洁清晰，像 ChatGPT 一样回答" />
+        </label>
+
+        <label>
+          <span>记忆</span>
+          <select id="useMemory">
+            <option value="true">开启</option>
+            <option value="false">关闭</option>
+          </select>
+        </label>
+
+        <label>
+          <span>模式</span>
+          <select id="analysisMode">
+            <option value="standard">普通</option>
+            <option value="agent">Agent</option>
+          </select>
+        </label>
+
+        <label>
+          <span>模型</span>
+          <select id="targetModels">
+            <option value="gemini">仅 Gemini</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="composer">
+        <textarea id="question" placeholder="输入问题，Enter 发送，Shift+Enter 换行"></textarea>
+        <button id="sendBtn" class="primary send" type="button">发送</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

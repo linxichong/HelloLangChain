@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>注册 - Multi Model Chat</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="auth-screen">
+    <section class="auth-panel">
+      <div class="auth-copy">
+        <h1>创建账号</h1>
+        <p>注册普通用户账号，开始使用股票分析助手。</p>
+      </div>
+
+      <form id="registerForm" class="auth-form">
+        <label>
+          <span>用户名</span>
+          <input id="registerUsername" autocomplete="username" placeholder="设置用户名" />
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="registerPassword" autocomplete="new-password" placeholder="设置密码" type="password" />
+        </label>
+        <label>
+          <span>确认密码</span>
+          <input id="registerPasswordConfirm" autocomplete="new-password" placeholder="再次输入密码" type="password" />
+        </label>
+        <button id="registerBtn" class="primary" type="submit">注册</button>
+      </form>
+
+      <p class="auth-link">已有账号？<a href="/login">登录</a></p>
+    </section>
+  </main>
+
+  <script src="/static/auth.js" defer></script>
+</body>
+</html>
