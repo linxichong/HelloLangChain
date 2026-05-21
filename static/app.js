@@ -138,6 +138,14 @@ function appendMessage(provider, role, text, kind = "") {
   msg.querySelector(".bubble").textContent = text;
   root.appendChild(msg);
   root.scrollTop = root.scrollHeight;
+  return msg;
+}
+
+function updateMessage(provider, msg, text, kind = "") {
+  msg.className = `msg assistant ${kind}`;
+  msg.querySelector(".bubble").textContent = text;
+  const root = document.querySelector(`#messages-${provider}`);
+  root.scrollTop = root.scrollHeight;
 }
 
 function setStatus(provider, text) {
@@ -188,6 +196,11 @@ async function sendQuestion() {
 }
 
 async function requestModel(provider, question) {
+  if (window.ReadableStream) {
+    await requestModelStream(provider, question);
+    return;
+  }
+
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -197,7 +210,7 @@ async function requestModel(provider, question) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.detail || `HTTP ${response.status}`);
+      throw new Error(formatApiError(data.detail, response.status));
     }
 
     const modeLabel = data.analysis_mode === "agent" ? "Agent" : "普通";
@@ -208,6 +221,81 @@ async function requestModel(provider, question) {
     appendMessage(provider, "assistant", error.message, "error");
     setStatus(provider, "失败");
   }
+}
+
+async function requestModelStream(provider, question) {
+  const assistantMsg = appendMessage(provider, "assistant", "");
+  let answer = "";
+  let confidence = null;
+  let analysisMode = document.querySelector("#analysisMode").value;
+
+  try {
+    const response = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: authHeaders({"Content-Type": "application/json"}),
+      body: JSON.stringify(buildPayload(provider, question)),
+    });
+
+    if (!response.ok || !response.body) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(formatApiError(data.detail, response.status));
+    }
+
+    setStatus(provider, "接收中");
+    for await (const event of readNdjson(response.body)) {
+      if (event.event === "delta") {
+        answer += event.text || "";
+        updateMessage(provider, assistantMsg, answer || " ");
+      } else if (event.event === "done") {
+        confidence = event.confidence;
+        analysisMode = event.analysis_mode || analysisMode;
+      } else if (event.event === "error") {
+        throw new Error(formatApiError(event.detail, response.status));
+      }
+    }
+
+    const modeLabel = analysisMode === "agent" ? "Agent" : "普通";
+    const score = Number(confidence ?? 0).toFixed(2);
+    updateMessage(provider, assistantMsg, `${answer}\n\n模式：${modeLabel}｜可信度：${score}`);
+    setStatus(provider, "完成");
+  } catch (error) {
+    updateMessage(provider, assistantMsg, error.message, "error");
+    setStatus(provider, "失败");
+  }
+}
+
+async function* readNdjson(stream) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, {stream: true});
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.trim()) {
+        yield JSON.parse(line);
+      }
+    }
+  }
+
+  buffer += decoder.decode();
+  if (buffer.trim()) {
+    yield JSON.parse(buffer);
+  }
+}
+
+function formatApiError(detail, status) {
+  if (detail && typeof detail === "object") {
+    const provider = detail.provider ? `${detail.provider}: ` : "";
+    return `${provider}${detail.message || detail.code || `HTTP ${status}`}`;
+  }
+  return detail || `HTTP ${status}`;
 }
 
 async function clearMemory() {

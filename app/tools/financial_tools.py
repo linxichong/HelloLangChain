@@ -575,25 +575,37 @@ def format_optional_float(value: float | None, suffix: str = "") -> str:
 @tool
 def financial_context_tool(question: str) -> str:
     """Get A-share or US stock market data context for a user's stock analysis question."""
-    return build_financial_context(question)
+    try:
+        return build_financial_context(question)
+    except Exception as exc:
+        return f"金融数据工具：获取失败（{type(exc).__name__}: {exc}）。请基于已知信息谨慎回答，并明确说明数据缺失。"
 
 
 @tool
 def stock_quote_tool(symbol: str) -> str:
     """Get a free delayed stock quote for a US ticker symbol."""
-    return get_stock_quote(symbol)
+    try:
+        return get_stock_quote(symbol)
+    except Exception as exc:
+        return f"行情工具：获取失败（{type(exc).__name__}: {exc}）。"
 
 
 @tool
 def sec_filings_tool(symbol: str) -> str:
     """Get recent SEC filings for a US ticker symbol."""
-    return get_company_filings(symbol)
+    try:
+        return get_company_filings(symbol)
+    except Exception as exc:
+        return f"SEC 申报工具：获取失败（{type(exc).__name__}: {exc}）。"
 
 
 @tool
 def sec_company_facts_tool(symbol: str) -> str:
     """Get a compact SEC company facts summary for a US ticker symbol."""
-    return get_company_facts_summary(symbol)
+    try:
+        return get_company_facts_summary(symbol)
+    except Exception as exc:
+        return f"SEC 财务数据工具：获取失败（{type(exc).__name__}: {exc}）。"
 
 
 def get_stock_quote(symbol: str) -> str:

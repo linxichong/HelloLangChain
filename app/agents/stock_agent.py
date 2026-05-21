@@ -1,3 +1,5 @@
+import concurrent.futures
+import os
 from typing import Any
 
 from langchain.agents import create_agent
@@ -6,6 +8,9 @@ from app.chains.chat_chain import ChatResult
 from app.llm.clients import BaseChatClient
 from app.tools.financial_tools import financial_context_tool
 
+
+AGENT_RECURSION_LIMIT = int(os.getenv("AGENT_RECURSION_LIMIT", "6"))
+AGENT_TIMEOUT_SECONDS = int(os.getenv("AGENT_TIMEOUT_SECONDS", "45"))
 
 STOCK_AGENT_PROMPT = (
     "你是专业但谨慎的股票分析助手。必须用用户要求的语言回答。\n"
@@ -18,6 +23,18 @@ STOCK_AGENT_PROMPT = (
 
 
 def invoke_stock_agent(client: BaseChatClient, inputs: dict[str, Any]) -> ChatResult:
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(_invoke_stock_agent_once, client, inputs)
+    try:
+        return future.result(timeout=AGENT_TIMEOUT_SECONDS)
+    except concurrent.futures.TimeoutError as exc:
+        future.cancel()
+        raise TimeoutError(f"Agent 调用超过 {AGENT_TIMEOUT_SECONDS} 秒") from exc
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
+def _invoke_stock_agent_once(client: BaseChatClient, inputs: dict[str, Any]) -> ChatResult:
     agent = create_agent(
         model=client.llm,
         tools=[financial_context_tool],
@@ -34,7 +51,7 @@ def invoke_stock_agent(client: BaseChatClient, inputs: dict[str, Any]) -> ChatRe
     )
     result = agent.invoke(
         {"messages": [{"role": "user", "content": content}]},
-        config={"recursion_limit": 6},
+        config={"recursion_limit": AGENT_RECURSION_LIMIT},
     )
 
     structured = result.get("structured_response")
