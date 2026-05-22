@@ -20,19 +20,14 @@ const logoutBtn = document.querySelector("#logoutBtn");
 const userInfo = document.querySelector("#userInfo");
 const currentUser = document.querySelector("#currentUser");
 
-let authToken = localStorage.getItem("authToken") || "";
 let activeUser = null;
 
 function authHeaders(extraHeaders = {}) {
-  if (!authToken) return extraHeaders;
-  return {
-    ...extraHeaders,
-    Authorization: `Bearer ${authToken}`,
-  };
+  return extraHeaders;
 }
 
 function updateAuthUi() {
-  const loggedIn = Boolean(activeUser && authToken);
+  const loggedIn = Boolean(activeUser);
   currentUser.textContent = loggedIn ? `${activeUser.username} · ${activeUser.role}` : "";
   sendBtn.disabled = !loggedIn;
   clearBtn.disabled = !loggedIn;
@@ -40,19 +35,15 @@ function updateAuthUi() {
 }
 
 async function loadCurrentUser() {
-  if (!authToken) {
-    window.location.href = "/login";
-    return;
-  }
-
   try {
-    const response = await fetch("/api/me", {headers: authHeaders()});
+    const response = await fetch("/api/me", {
+      credentials: "same-origin",
+      headers: authHeaders(),
+    });
     if (!response.ok) throw new Error("session expired");
     activeUser = await response.json();
   } catch (error) {
-    authToken = "";
     activeUser = null;
-    localStorage.removeItem("authToken");
     window.location.href = "/login";
     return;
   }
@@ -60,15 +51,12 @@ async function loadCurrentUser() {
 }
 
 async function logout() {
-  if (authToken) {
-    await fetch("/api/logout", {
-      method: "POST",
-      headers: authHeaders(),
-    }).catch(() => {});
-  }
-  authToken = "";
+  await fetch("/api/logout", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: authHeaders(),
+  }).catch(() => {});
   activeUser = null;
-  localStorage.removeItem("authToken");
   window.location.href = "/login";
 }
 
@@ -175,7 +163,7 @@ function buildPayload(provider, question) {
 async function sendQuestion() {
   const question = questionInput.value.trim();
   if (!question) return;
-  if (!authToken) {
+  if (!activeUser) {
     alert("请先登录");
     return;
   }
@@ -204,6 +192,7 @@ async function requestModel(provider, question) {
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
+      credentials: "same-origin",
       headers: authHeaders({"Content-Type": "application/json"}),
       body: JSON.stringify(buildPayload(provider, question)),
     });
@@ -232,6 +221,7 @@ async function requestModelStream(provider, question) {
   try {
     const response = await fetch("/api/chat/stream", {
       method: "POST",
+      credentials: "same-origin",
       headers: authHeaders({"Content-Type": "application/json"}),
       body: JSON.stringify(buildPayload(provider, question)),
     });
@@ -307,13 +297,14 @@ function formatApiError(detail, status) {
 }
 
 async function clearMemory() {
-  if (!authToken) {
+  if (!activeUser) {
     alert("请先登录");
     return;
   }
 
   await fetch("/api/reset", {
     method: "POST",
+    credentials: "same-origin",
     headers: authHeaders(),
   });
 

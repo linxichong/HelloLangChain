@@ -8,9 +8,7 @@ const registerUsernameInput = document.querySelector("#registerUsername");
 const registerPasswordInput = document.querySelector("#registerPassword");
 const registerPasswordConfirmInput = document.querySelector("#registerPasswordConfirm");
 
-if (localStorage.getItem("authToken")) {
-  window.location.href = "/";
-}
+redirectIfAlreadyLoggedIn();
 
 async function login(event) {
   event.preventDefault();
@@ -19,6 +17,7 @@ async function login(event) {
   try {
     const response = await fetch("/api/login", {
       method: "POST",
+      credentials: "same-origin",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         username: usernameInput.value.trim(),
@@ -30,7 +29,6 @@ async function login(event) {
       throw new Error(formatApiError(data.detail, "登录失败"));
     }
 
-    localStorage.setItem("authToken", data.token);
     window.location.href = "/";
   } catch (error) {
     alert(error.message);
@@ -54,6 +52,7 @@ async function register(event) {
   try {
     const response = await fetch("/api/register", {
       method: "POST",
+      credentials: "same-origin",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({username, password}),
     });
@@ -78,6 +77,17 @@ function prefillRegisteredUser() {
   if (username) {
     usernameInput.value = username;
     passwordInput.focus();
+  }
+}
+
+async function redirectIfAlreadyLoggedIn() {
+  try {
+    const response = await fetch("/api/me", {credentials: "same-origin"});
+    if (response.ok) {
+      window.location.href = "/";
+    }
+  } catch (error) {
+    // Stay on the login/register page when the session check fails.
   }
 }
 

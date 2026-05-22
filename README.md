@@ -128,6 +128,7 @@ ADMIN_PASSWORD=change-me
 ENABLE_PUBLIC_REGISTRATION=true
 NORMAL_USER_MEMORY_TURN_LIMIT=5
 SESSION_EXPIRE_HOURS=168
+SESSION_COOKIE_SECURE=false
 ```
 
 程序启动时会自动加载 `.env`。系统环境变量优先级更高，如果同名变量已经在 shell 里设置，`.env` 不会覆盖它。
@@ -165,6 +166,7 @@ createdb hellolangchain
 - 未登录时会显示登录/注册画面，注册用户默认为普通用户
 - 可以通过 `ENABLE_PUBLIC_REGISTRATION=false` 关闭公开注册
 - 登录后会得到 bearer token，聊天和清空记忆都需要登录
+- Web 页面会优先使用 HttpOnly 会话 cookie；如果部署在 HTTPS 后面，建议设置 `SESSION_COOKIE_SECURE=true`
 - 不同用户的历史记忆互相隔离
 - 普通用户默认只保留最近 5 轮问答，可通过 `NORMAL_USER_MEMORY_TURN_LIMIT` 调整
 - 超级用户不裁剪历史记忆

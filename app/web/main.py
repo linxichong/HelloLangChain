@@ -5,6 +5,8 @@ from app.config.env_loader import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from app.db import auth_store
@@ -20,6 +22,29 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(models.router)
 app.include_router(chat.router)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next) -> Response:
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=()",
+    )
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self' data:; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+        "frame-ancestors 'none'",
+    )
+    return response
 
 
 @app.on_event("startup")

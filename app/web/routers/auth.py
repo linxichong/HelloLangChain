@@ -1,7 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.db import auth_store
-from app.web.dependencies import get_bearer_token, get_current_user
+from app.web.dependencies import (
+    AUTH_COOKIE_NAME,
+    AUTH_COOKIE_SAMESITE,
+    AUTH_COOKIE_SECURE,
+    get_bearer_token,
+    get_current_user,
+)
 from app.web.schemas import LoginRequest, LoginResponse, RegisterRequest, UserResponse
 
 
@@ -9,7 +15,7 @@ router = APIRouter(prefix="/api", tags=["auth"])
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(request: LoginRequest) -> LoginResponse:
+def login(request: LoginRequest, response: Response) -> LoginResponse:
     user = auth_store.authenticate_user(request.username, request.password)
     if not user:
         raise HTTPException(
@@ -18,6 +24,16 @@ def login(request: LoginRequest) -> LoginResponse:
         )
 
     token, expires_at = auth_store.create_session(user)
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=AUTH_COOKIE_SECURE,
+        samesite=AUTH_COOKIE_SAMESITE,
+        max_age=auth_store.SESSION_EXPIRE_HOURS * 60 * 60,
+        expires=expires_at,
+        path="/",
+    )
     return LoginResponse(
         token=token,
         expires_at=expires_at.isoformat(),
@@ -46,8 +62,17 @@ def register(request: RegisterRequest) -> UserResponse:
 
 
 @router.post("/logout")
-def logout(user_token: str = Depends(get_bearer_token)) -> dict[str, bool]:
+def logout(
+    response: Response,
+    user_token: str = Depends(get_bearer_token),
+) -> dict[str, bool]:
     auth_store.delete_session(user_token)
+    response.delete_cookie(
+        key=AUTH_COOKIE_NAME,
+        secure=AUTH_COOKIE_SECURE,
+        samesite=AUTH_COOKIE_SAMESITE,
+        path="/",
+    )
     return {"ok": True}
 
 
