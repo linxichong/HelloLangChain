@@ -75,27 +75,36 @@ def encode_stream_events(
     except ModelCallError as exc:
         if exc.info.status_code >= 500:
             logger.exception("Streaming chat model call failed")
-        yield json.dumps(
-            {
-                "event": "error",
-                "detail": error_response_detail(exc.info),
-            },
-            ensure_ascii=False,
-        ) + "\n"
+        yield (
+            json.dumps(
+                {
+                    "event": "error",
+                    "detail": error_response_detail(exc.info),
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
     except ValueError as exc:
-        yield json.dumps(
-            {
-                "event": "error",
-                "detail": str(exc),
-            },
-            ensure_ascii=False,
-        ) + "\n"
-    except Exception as exc:
+        yield (
+            json.dumps(
+                {
+                    "event": "error",
+                    "detail": str(exc),
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+    except Exception:
         logger.exception("Streaming chat request failed")
-        yield json.dumps(
-            {
-                "event": "error",
-                "detail": INTERNAL_ERROR_DETAIL,
-            },
-            ensure_ascii=False,
-        ) + "\n"
+        yield (
+            json.dumps(
+                {
+                    "event": "error",
+                    "detail": INTERNAL_ERROR_DETAIL,
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )

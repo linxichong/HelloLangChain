@@ -275,9 +275,7 @@ def parse_tencent_a_share_snapshot(stock: dict[str, str], text: str) -> dict[str
 
 def format_a_share_snapshot(snapshot: dict[str, str]) -> str:
     if snapshot.get("error"):
-        return (
-            f"A 股行情数据：未找到 {snapshot['name']}（{snapshot['code']}）的行情。"
-        )
+        return f"A 股行情数据：未找到 {snapshot['name']}（{snapshot['code']}）的行情。"
 
     source_time = format_market_timestamp(snapshot["source_time"])
 
@@ -344,9 +342,7 @@ def get_a_share_daily_kline_summary(
     try:
         data = json.loads(http_get(url, headers=DEFAULT_HTTP_HEADERS))
         rows = parse_tencent_klines(
-            data.get("data", {})
-            .get(f"{market_prefix}{stock['code']}", {})
-            .get("qfqday", [])
+            data.get("data", {}).get(f"{market_prefix}{stock['code']}", {}).get("qfqday", [])
         )
     except Exception as exc:
         return f"日 K 线数据：获取失败（{type(exc).__name__}: {exc}）。"
@@ -504,16 +500,13 @@ def field_at(fields: list[str], index: int, default: str = "未返回") -> str:
 def format_market_timestamp(value: str) -> str:
     if not value or len(value) < 14:
         return value or "未知"
-    return (
-        f"{value[0:4]}-{value[4:6]}-{value[6:8]} "
-        f"{value[8:10]}:{value[10:12]}:{value[12:14]}"
-    )
+    return f"{value[0:4]}-{value[4:6]}-{value[6:8]} {value[8:10]}:{value[10:12]}:{value[12:14]}"
 
 
 def to_float(value: str) -> float:
     try:
         return float(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return 0.0
 
 
@@ -653,7 +646,9 @@ def get_company_filings(symbol: str, limit: int = 5) -> str:
     docs = recent.get("primaryDocument", [])
 
     items = []
-    for form, date, accession, doc in list(zip(forms, dates, accessions, docs))[:limit]:
+    for form, date, accession, doc in list(zip(forms, dates, accessions, docs, strict=False))[
+        :limit
+    ]:
         accession_path = accession.replace("-", "")
         filing_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_path}/{doc}"
         items.append(f"{date} {form}: {filing_url}")
@@ -735,10 +730,7 @@ def load_ticker_mapping() -> dict[str, int]:
 
     url = "https://www.sec.gov/files/company_tickers.json"
     data = json.loads(http_get(url, sec_headers()))
-    mapping = {
-        item["ticker"].upper(): int(item["cik_str"])
-        for item in data.values()
-    }
+    mapping = {item["ticker"].upper(): int(item["cik_str"]) for item in data.values()}
     _ticker_cache["data"] = mapping
     _ticker_cache["loaded_at"] = now
     return mapping

@@ -14,3 +14,34 @@ dependencies = [
     "psycopg-pool>=3.3.0",
     "uvicorn>=0.38.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+    "ruff>=0.14.6",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "UP",
+    "B",
+]
+ignore = [
+    "B008",
+    "E402",
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"chat_web_app.py" = ["F401"]

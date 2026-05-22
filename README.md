@@ -203,3 +203,17 @@ uv run python -m app.cli
 ```bash
 uv run python main.py
 ```
+
+## 测试和质量检查
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+```
+
+如果要自动格式化：
+
+```bash
+uv run ruff format .
+```

@@ -63,7 +63,7 @@ def verify_password(password: str, stored_hash: str) -> bool:
             salt.encode("utf-8"),
             int(iterations),
         ).hex()
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return False
 
     return secrets.compare_digest(digest, expected)
@@ -188,10 +188,7 @@ def get_history(user: AuthUser, provider: str) -> list[dict[str, str]]:
             cur.execute(query, params)
             rows = cur.fetchall()
 
-    return [
-        {"role": row["role"], "content": row["content"]}
-        for row in reversed(rows)
-    ]
+    return [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
 
 
 def append_memory(user: AuthUser, provider: str, role: str, content: str) -> None:
