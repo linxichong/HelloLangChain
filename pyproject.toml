@@ -11,5 +11,6 @@ dependencies = [
     "langchain-google-genai>=4.2.2",
     "langchain-openai>=1.2.1",
     "psycopg[binary]>=3.3.2",
+    "psycopg-pool>=3.3.0",
     "uvicorn>=0.38.0",
 ]

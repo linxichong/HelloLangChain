@@ -32,6 +32,7 @@ uv run uvicorn app.web.main:app --host 0.0.0.0 --port 8010
 app/
   web/       FastAPI 页面和 API 路由
   db/        PostgreSQL 用户、登录会话、记忆存储
+    migrations/  版本化 SQL 迁移
   llm/       Gemini、OpenAI、DeepSeek 客户端
   chains/    普通 LangChain 链
   agents/    LangChain Agent 模式
@@ -123,6 +124,8 @@ POSTGRES_PASSWORD=admin123
 POSTGRES_HOST_PORT=5433
 
 DATABASE_URL=postgresql://admin:admin123@127.0.0.1:5433/hellolangchain
+DATABASE_POOL_MIN_SIZE=1
+DATABASE_POOL_MAX_SIZE=10
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-me
 ENABLE_PUBLIC_REGISTRATION=true
@@ -163,6 +166,8 @@ createdb hellolangchain
 ```
 
 - 首次启动时，如果配置了 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD`，会自动创建超级用户
+- 启动时会自动执行 `app/db/migrations/*.sql` 中尚未执行的数据库迁移，并记录在 `schema_migrations`
+- 数据库连接通过连接池复用，可用 `DATABASE_POOL_MIN_SIZE` 和 `DATABASE_POOL_MAX_SIZE` 调整
 - 未登录时会显示登录/注册画面，注册用户默认为普通用户
 - 可以通过 `ENABLE_PUBLIC_REGISTRATION=false` 关闭公开注册
 - 登录后会得到 bearer token，聊天和清空记忆都需要登录

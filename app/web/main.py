@@ -10,6 +10,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from app.db import auth_store
+from app.db.connection import close_pool
 from app.web.constants import BASE_DIR
 from app.web.routers import auth, chat, models, pages, users
 
@@ -50,6 +51,11 @@ async def add_security_headers(request: Request, call_next) -> Response:
 @app.on_event("startup")
 def startup() -> None:
     auth_store.init_auth_store()
+
+
+@app.on_event("shutdown")
+def shutdown() -> None:
+    close_pool()
 
 
 def main() -> None:
