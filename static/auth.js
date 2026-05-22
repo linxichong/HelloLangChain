@@ -27,7 +27,7 @@ async function login(event) {
     });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.detail || "登录失败");
+      throw new Error(formatApiError(data.detail, "登录失败"));
     }
 
     localStorage.setItem("authToken", data.token);
@@ -59,7 +59,7 @@ async function register(event) {
     });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.detail || "注册失败");
+      throw new Error(formatApiError(data.detail, "注册失败"));
     }
 
     window.location.href = `/login?registered=${encodeURIComponent(username)}`;
@@ -79,6 +79,18 @@ function prefillRegisteredUser() {
     usernameInput.value = username;
     passwordInput.focus();
   }
+}
+
+function formatApiError(detail, fallback) {
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        const field = Array.isArray(item.loc) ? item.loc.slice(1).join(".") : "";
+        return field ? `${field}: ${item.msg}` : item.msg;
+      })
+      .join("\n");
+  }
+  return detail || fallback;
 }
 
 if (loginForm) {

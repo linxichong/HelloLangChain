@@ -291,6 +291,14 @@ async function* readNdjson(stream) {
 }
 
 function formatApiError(detail, status) {
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        const field = Array.isArray(item.loc) ? item.loc.slice(1).join(".") : "";
+        return field ? `${field}: ${item.msg}` : item.msg;
+      })
+      .join("\n");
+  }
   if (detail && typeof detail === "object") {
     const provider = detail.provider ? `${detail.provider}: ` : "";
     return `${provider}${detail.message || detail.code || `HTTP ${status}`}`;

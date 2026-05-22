@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.db import auth_store
 from app.web.dependencies import get_bearer_token, get_current_user
-from app.web.schemas import LoginRequest, LoginResponse, UserResponse
+from app.web.schemas import LoginRequest, LoginResponse, RegisterRequest, UserResponse
 
 
 router = APIRouter(prefix="/api", tags=["auth"])
@@ -27,7 +27,7 @@ def login(request: LoginRequest) -> LoginResponse:
 
 
 @router.post("/register", response_model=UserResponse)
-def register(request: LoginRequest) -> UserResponse:
+def register(request: RegisterRequest) -> UserResponse:
     if not auth_store.ENABLE_PUBLIC_REGISTRATION:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

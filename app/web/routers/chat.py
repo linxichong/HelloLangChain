@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from collections.abc import Iterator
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,6 +15,13 @@ from app.web.services.chat_service import chat, stream_chat_events
 
 
 router = APIRouter(prefix="/api", tags=["chat"])
+logger = logging.getLogger(__name__)
+
+INTERNAL_ERROR_DETAIL = {
+    "code": "internal_error",
+    "message": "服务暂时异常，请稍后重试。",
+    "retryable": False,
+}
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -24,6 +32,8 @@ async def chat_api(
     try:
         return await asyncio.to_thread(chat, request, user)
     except ModelCallError as exc:
+        if exc.info.status_code >= 500:
+            logger.exception("Chat model call failed")
         raise HTTPException(
             status_code=exc.info.status_code,
             detail=error_response_detail(exc.info),
@@ -31,9 +41,10 @@ async def chat_api(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
+        logger.exception("Chat request failed")
         raise HTTPException(
             status_code=500,
-            detail=f"{type(exc).__name__}: {exc}",
+            detail=INTERNAL_ERROR_DETAIL,
         ) from exc
 
 
@@ -62,6 +73,8 @@ def encode_stream_events(
         for event in stream_chat_events(request, user):
             yield json.dumps(event, ensure_ascii=False) + "\n"
     except ModelCallError as exc:
+        if exc.info.status_code >= 500:
+            logger.exception("Streaming chat model call failed")
         yield json.dumps(
             {
                 "event": "error",
@@ -78,10 +91,11 @@ def encode_stream_events(
             ensure_ascii=False,
         ) + "\n"
     except Exception as exc:
+        logger.exception("Streaming chat request failed")
         yield json.dumps(
             {
                 "event": "error",
-                "detail": f"{type(exc).__name__}: {exc}",
+                "detail": INTERNAL_ERROR_DETAIL,
             },
             ensure_ascii=False,
         ) + "\n"

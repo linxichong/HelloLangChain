@@ -119,7 +119,7 @@ def classify_model_error(exc: Exception, provider: str | None = None) -> ModelEr
     return ModelErrorInfo(
         code=ModelErrorCode.UNKNOWN,
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-        message=f"模型调用失败：{type(exc).__name__}: {exc}",
+        message="模型调用失败，请稍后重试或切换模型。",
         provider=provider,
     )
 
